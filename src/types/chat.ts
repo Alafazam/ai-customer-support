@@ -1,19 +1,16 @@
-export type MessageType = {
+export type MessageType = 'user' | 'assistant';
+
+export interface Message {
   id: string;
   content: string;
-  role: 'user' | 'assistant';
-  timestamp: Date;
-};
+  type: MessageType;
+  timestamp: string;
+}
 
-export type IssueType = 'SOP_GAP' | 'GENUINE_ISSUE' | 'UNCLASSIFIED';
+export type IssueType = 'SOP_GAP' | 'GENUINE_ISSUE' | 'UNKNOWN';
 
-export type ChatState = {
-  messages: MessageType[];
+export interface ChatState {
+  messages: Message[];
   issueType: IssueType;
-  currentStep: 'INITIAL' | 'GATHERING_INFO' | 'CLASSIFICATION' | 'RESOLUTION';
-  orderDetails?: {
-    orderId?: string;
-    productsAffected?: number;
-    repeatAttempts?: number;
-  };
-}; 
+  currentStep: 'INITIAL' | 'GATHERING_INFO' | 'RESOLUTION';
+}
