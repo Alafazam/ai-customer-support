@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Loader2, UserCog } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import Cookies from 'js-cookie';
+import { SupportAgentIcon } from '@/components/icons';
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
@@ -45,27 +46,21 @@ export default function LoginPage() {
         throw new Error(data.error || 'Login failed');
       }
 
-      // Store token in cookie
-      Cookies.set('auth_token', data.token, { expires: 7 }); // 7 days expiry
-      
-      // Store user data in localStorage for user info
-      localStorage.setItem('user', JSON.stringify(data.user));
-
-      // Debug log
-      console.log('Login successful:', data.user);
-
-      // Redirect based on user role
-      if (data.user.role === 'CUSTOMER') {
-        window.location.href = '/chat';
-      } else if (data.user.role === 'SUPPORT_AGENT') {
-        window.location.href = '/dashboard';
-      } else {
-        console.error('Unknown role:', data.user.role);
-        setError('Invalid user role');
+      // Check for correct role first
+      if (data.user.role !== 'CUSTOMER') {
+        throw new Error('Access denied. Please use the support login page.');
       }
+
+      // Only set auth data if role is correct
+      Cookies.set('auth_token', data.token, { expires: 7 }); // 7 days expiry
+      localStorage.setItem('user', JSON.stringify(data.user));
+      window.location.href = '/chat';
     } catch (err) {
       console.error('Login error:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
+      // Clear any potentially set auth data
+      Cookies.remove('auth_token');
+      localStorage.removeItem('user');
     } finally {
       setLoading(false);
     }
@@ -88,9 +83,8 @@ export default function LoginPage() {
               className="rounded-full"
               priority
             />
-            <h1 className="text-2xl font-bold mt-3">Omni Sahayak</h1>
+            <h1 className="text-2xl font-bold mt-3"> Welcome To Omni Sahayak</h1>
           </div>
-          <CardTitle className="text-xl">Welcome Back</CardTitle>
           <CardDescription>Sign in to your account to continue</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -125,7 +119,7 @@ export default function LoginPage() {
             <div className="space-y-4 flex flex-col items-center">
               <Button
                 type="submit"
-                className="w-40 h-11 text-base font-semibold bg-primary hover:bg-primary/90 border border-primary-foreground shadow-sm"
+                className="w-40 h-11 text-base font-semibold bg-black hover:bg-black/90 text-white"
                 disabled={loading}
               >
                 {loading ? (
@@ -134,17 +128,17 @@ export default function LoginPage() {
                     Signing in...
                   </>
                 ) : (
-                  'Sign in'
+                  'Login'
                 )}
               </Button>
               <Button
                 type="button"
                 variant="ghost"
-                className="w-full h-11 text-base mt-8"
+                className="text-base"
                 onClick={handleSupportLogin}
                 disabled={loading}
               >
-                <UserCog className="mr-2 h-5 w-5" />
+                <SupportAgentIcon className="mr-2 h-5 w-5" />
                 Login as Support Agent
               </Button>
             </div>
