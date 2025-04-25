@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
-import { Mic, MicOff } from 'lucide-react';
 import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area";
 import { Message, ChatState } from '@/types/chat';
 import { useConversation } from '@11labs/react';
+import { cn } from "@/lib/utils";
+import { SpeakingIcon } from '@/components/icons/SpeakingIcon';
+import { SendIcon } from '@/components/icons/SendIcon';
 
 interface ConversationProps {
   message: string;
@@ -66,8 +68,10 @@ const ChatBot: React.FC = () => {
     try {
       setError(null);
       const agentId = process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID;
-      if (!agentId) {
-        throw new Error('ElevenLabs Agent ID is not configured');
+      const apiKey = process.env.NEXT_PUBLIC_ELEVENLABS_API_KEY;
+      
+      if (!agentId || !apiKey) {
+        throw new Error('ElevenLabs credentials are not configured');
       }
 
       await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -77,11 +81,11 @@ const ChatBot: React.FC = () => {
         const signedUrl = await getSignedUrl();
         await conversation.startSession({ signedUrl });
       } catch {
-        // If signed URL fails, fall back to direct agent ID
-        console.log('Falling back to direct agent ID connection');
+        // If signed URL fails, fall back to direct connection
+        console.log('Falling back to direct connection');
         await conversation.startSession({
           agentId,
-          authorization: `Bearer ${process.env.NEXT_PUBLIC_ELEVENLABS_API_KEY}`,
+          authorization: apiKey // Use the API key directly
         });
       }
     } catch (error: unknown) {
@@ -146,81 +150,116 @@ const ChatBot: React.FC = () => {
 
   return (
     <Card className="w-[400px] h-[600px] flex flex-col">
-      <CardHeader>
+      <CardHeader className="pb-4">
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Avatar>
-              <AvatarImage src="/bot-avatar.png" alt="Bot" />
+              <AvatarImage src="/bot-avatar.png" alt="Omni Suvidha" />
             </Avatar>
-            Support Assistant
+            <span>Omni Suvidha</span>
           </div>
-          <div className="flex gap-2">
-            <Button
-              onClick={startVoiceChat}
-              disabled={conversation.status === 'connected'}
-              variant="outline"
-            >
-              Start Voice
-            </Button>
-            <Button
-              onClick={stopVoiceChat}
-              disabled={conversation.status !== 'connected'}
-              variant="outline"
-            >
-              Stop Voice
-            </Button>
-          </div>
+          <Button
+            onClick={conversation.status === 'connected' ? stopVoiceChat : startVoiceChat}
+            variant="ghost"
+            size="icon"
+            className={cn(
+              "h-12 w-12 rounded-full transition-all duration-200 hover:bg-secondary",
+              conversation.status === 'connected' && "bg-primary/10 text-primary"
+            )}
+          >
+            <SpeakingIcon isActive={conversation.status === 'connected'} />
+          </Button>
         </CardTitle>
         {error && (
           <p className="text-red-500 text-sm mt-2">{error}</p>
         )}
       </CardHeader>
-      <CardContent className="flex-1">
-        <ScrollArea className="h-full pr-4">
+      <CardContent className="flex-1 overflow-hidden p-4">
+        <ScrollArea 
+          className="h-full pr-4" 
+          type={chatState.messages.length > 0 ? "always" : "scroll"}
+        >
           <ScrollAreaPrimitive.Viewport ref={scrollViewportRef} className="h-full w-full">
-            {chatState.messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex ${
-                  message.type === 'user' ? 'justify-end' : 'justify-start'
-                } mb-4`}
-              >
-                <div
-                  className={`rounded-lg p-3 max-w-[80%] ${
-                    message.type === 'user'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-secondary text-secondary-foreground'
-                  }`}
-                >
-                  {message.content}
+            {chatState.messages.length === 0 ? (
+              <div className="h-full flex items-center justify-center">
+                <div className="text-center p-6 rounded-lg bg-secondary/50 backdrop-blur-sm shadow-inner">
+                  <h3 className="text-xl font-semibold text-primary mb-2">
+                    Welcome to Omni Support
+                  </h3>
+                  <p className="text-muted-foreground">
+                    How may I help you today?
+                  </p>
                 </div>
               </div>
-            ))}
+            ) : (
+              <div className="flex flex-col gap-4">
+                {chatState.messages.map((message) => (
+                  <div
+                    key={message.id}
+                    className={`flex ${
+                      message.type === 'user' ? 'justify-end' : 'justify-start'
+                    }`}
+                  >
+                    <div
+                      className={`rounded-lg p-3 max-w-[80%] break-words ${
+                        message.type === 'user'
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-secondary text-secondary-foreground'
+                      }`}
+                    >
+                      {message.content}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </ScrollAreaPrimitive.Viewport>
+          {chatState.messages.length > 0 && (
+            <ScrollAreaPrimitive.Scrollbar
+              className="w-2 rounded-full bg-gray-100"
+              orientation="vertical"
+            >
+              <ScrollAreaPrimitive.Thumb className="rounded-full bg-gray-300" />
+            </ScrollAreaPrimitive.Scrollbar>
+          )}
         </ScrollArea>
       </CardContent>
-      <CardFooter>
-        <div className="flex w-full gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            className={conversation.status === 'connected' ? 'bg-red-100' : ''}
-            disabled={conversation.status !== 'connected'}
-          >
-            {conversation.status === 'connected' ? (
-              <MicOff className="h-4 w-4" />
-            ) : (
-              <Mic className="h-4 w-4" />
-            )}
-          </Button>
+      <CardFooter className="p-4 pt-2">
+        <form 
+          className="flex w-full gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            processUserInput();
+          }}
+        >
           <Input
             placeholder="Type your message..."
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && processUserInput()}
+            className="flex-1"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                processUserInput();
+              }
+            }}
           />
-          <Button onClick={() => processUserInput()}>Send</Button>
-        </div>
+          <Button 
+            type="submit" 
+            size="icon"
+            className={cn(
+              "h-10 w-10 rounded-full transition-colors",
+              inputValue.trim() ? "bg-primary hover:bg-primary/90" : "bg-muted hover:bg-muted/90"
+            )}
+            disabled={!inputValue.trim()}
+          >
+            <SendIcon className={cn(
+              "transition-transform",
+              inputValue.trim() && "translate-x-0.5 -translate-y-0.5"
+            )} />
+            <span className="sr-only">Send message</span>
+          </Button>
+        </form>
       </CardFooter>
     </Card>
   );
