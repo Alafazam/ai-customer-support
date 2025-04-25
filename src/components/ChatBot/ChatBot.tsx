@@ -154,9 +154,9 @@ const ChatBot: React.FC = () => {
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Avatar>
-              <AvatarImage src="/bot-avatar.png" alt="Omni Suvidha" />
+              <AvatarImage src="/bot-avatar.png" alt="Omni Sahayak" />
             </Avatar>
-            <span>Omni Suvidha</span>
+            <span>Omni Sahayak</span>
           </div>
           <Button
             onClick={conversation.status === 'connected' ? stopVoiceChat : startVoiceChat}
@@ -184,7 +184,7 @@ const ChatBot: React.FC = () => {
               <div className="h-full flex items-center justify-center">
                 <div className="text-center p-6 rounded-lg bg-secondary/50 backdrop-blur-sm shadow-inner">
                   <h3 className="text-xl font-semibold text-primary mb-2">
-                    Welcome to Omni Support
+                    I am your Omni Sahayak
                   </h3>
                   <p className="text-muted-foreground">
                     How may I help you today?
