@@ -1,0 +1,18 @@
+[
+  {
+    "email": "support@omnisahayak.com",
+    "password": "support123",
+    "firstName": "Support",
+    "lastName": "Agent",
+    "role": "SUPPORT_AGENT"
+  },
+  {
+    "email": "customer@example.com",
+    "password": "customer123",
+    "firstName": "Demo",
+    "lastName": "Customer",
+    "role": "CUSTOMER",
+    "client": "Example Corp",
+    "clientId": "EXAMPLE001"
+  }
+] 
