@@ -116,7 +116,7 @@ export default function IssuePage({ params }: { params: { id: string } }) {
 
             {/* System Logs Timeline */}
             {issue.systemLogs && issue.systemLogs.length > 0 && (
-              <SystemLogsTimeline logs={issue.systemLogs} />
+              <SystemLogsTimeline />
             )}
           </div>
 
