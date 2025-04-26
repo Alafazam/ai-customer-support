@@ -1,4 +1,4 @@
-import { SystemLog } from '@/types/issue';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
@@ -10,34 +10,26 @@ import {
   XCircle,
   Clock,
   Download,
-  ChevronRight,
-  Database,
-  Globe,
-  Bell,
-  Cog
+  Eye
 } from 'lucide-react';
-import { formatDistanceToNow, formatDistanceStrict } from 'date-fns';
+import { formatDistanceStrict, format } from 'date-fns';
+import { mockSystemLogs, generateLogCSV } from '@/data/mockSystemLogs';
+import OmniOrderLogsTimeline from './OmniOrderLogsTimeline';
 
-interface SystemLogsTimelineProps {
-  logs: SystemLog[];
-}
+const logs = mockSystemLogs.map((log) => ({
+  id: log.id,
+  type: 'API_CALL',
+  status: log.status === 'SUCCESS' ? 'success' : 'error',
+  name: log.apiName,
+  method: log.method,
+  url: log.url,
+  channel: log.channel,
+  timestamp: log.timestamp,
+  duration: log.duration,
+  log: log,
+}));
 
-const getTypeIcon = (type: SystemLog['type']) => {
-  switch (type) {
-    case 'API_CALL':
-      return <Globe className="h-4 w-4" />;
-    case 'DATABASE':
-      return <Database className="h-4 w-4" />;
-    case 'NOTIFICATION':
-      return <Bell className="h-4 w-4" />;
-    case 'SERVICE':
-      return <Cog className="h-4 w-4" />;
-    default:
-      return <ChevronRight className="h-4 w-4" />;
-  }
-};
-
-const getStatusIcon = (status: SystemLog['status']) => {
+const getStatusIcon = (status: string) => {
   switch (status) {
     case 'error':
       return <XCircle className="h-5 w-5 text-red-500" />;
@@ -48,7 +40,7 @@ const getStatusIcon = (status: SystemLog['status']) => {
   }
 };
 
-const getStatusColor = (status: SystemLog['status']) => {
+const getStatusColor = (status: string) => {
   switch (status) {
     case 'error':
       return 'bg-red-50 border-red-100';
@@ -59,7 +51,23 @@ const getStatusColor = (status: SystemLog['status']) => {
   }
 };
 
-export default function SystemLogsTimeline({ logs }: SystemLogsTimelineProps) {
+export default function SystemLogsTimeline() {
+  const [selectedLog, setSelectedLog] = useState<typeof logs[0] | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [openSection, setOpenSection] = useState<'system' | 'omni' | 'audit' | null>('system');
+
+  // Prevent parent scroll when drawer is open
+  useEffect(() => {
+    if (drawerOpen) {
+      document.body.classList.add('overflow-hidden');
+    } else {
+      document.body.classList.remove('overflow-hidden');
+    }
+    return () => {
+      document.body.classList.remove('overflow-hidden');
+    };
+  }, [drawerOpen]);
+
   // Sort logs by timestamp
   const sortedLogs = [...logs].sort(
     (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
@@ -68,140 +76,235 @@ export default function SystemLogsTimeline({ logs }: SystemLogsTimelineProps) {
   // Calculate the total duration of the process
   const startTime = new Date(sortedLogs[0]?.timestamp).getTime();
   const endTime = new Date(sortedLogs[sortedLogs.length - 1]?.timestamp).getTime();
-  const totalDuration = endTime - startTime;
+
+  // Download CSV for a log
+  const handleDownload = (log: typeof logs[0]) => {
+    const csv = generateLogCSV(log.log);
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${log.name.replace(/\s+/g, '_')}_${log.id}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
+  };
+
+  // Calculate time between calls
+  const getTimeBetween = (prev: string, curr: string) => {
+    const prevTime = new Date(prev).getTime();
+    const currTime = new Date(curr).getTime();
+    return currTime - prevTime;
+  };
+
+  // Accordion section header
+  const SectionHeader = ({ label, section, extra }: { label: string; section: typeof openSection, extra?: React.ReactNode }) => (
+    <button
+      className={`w-full flex items-center justify-between px-4 py-3 text-lg font-semibold bg-muted/60 border-b hover:bg-muted transition-colors ${openSection === section ? 'rounded-t-lg' : 'rounded-lg'}`}
+      onClick={() => setOpenSection(openSection === section ? null : section)}
+      type="button"
+    >
+      <span className="flex items-center gap-3">
+        {label}
+        {openSection === section && extra}
+      </span>
+      <span className="ml-2">{openSection === section ? '−' : '+'}</span>
+    </button>
+  );
 
   return (
-    <Card className="relative overflow-hidden">
-      <div className="p-4 border-b bg-muted/50">
-        <div className="flex items-center justify-between">
-          <h3 className="font-semibold">System Logs Timeline</h3>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Clock className="h-4 w-4" />
-            Total Duration: {formatDistanceStrict(startTime, endTime)}
-          </div>
-        </div>
-      </div>
-
-      <ScrollArea className="h-[600px]">
-        <div className="p-4 space-y-4">
-          {sortedLogs.map((log, index) => {
-            const logTime = new Date(log.timestamp).getTime();
-            const progress = ((logTime - startTime) / totalDuration) * 100;
-            const hasNextLog = index < sortedLogs.length - 1;
-
-            return (
-              <div key={log.id} className="relative">
-                {/* Timeline line */}
-                {hasNextLog && (
-                  <div 
-                    className="absolute left-6 top-10 bottom-0 w-0.5 bg-border"
-                    style={{ left: '1.5rem' }}
-                  />
-                )}
-
-                {/* Log entry */}
-                <div className={`
-                  relative flex gap-4 p-4 rounded-lg border
-                  ${getStatusColor(log.status)}
-                `}>
-                  {/* Type icon */}
-                  <div className="mt-1">
-                    {getTypeIcon(log.type)}
-                  </div>
-
-                  {/* Content */}
-                  <div className="flex-1 space-y-2">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-medium">{log.name}</h4>
+    <div className="space-y-4">
+      {/* System Logs Timeline Section */}
+      <Card className="overflow-hidden">
+        <SectionHeader 
+          label="System Logs Timeline" 
+          section="system"
+          extra={
+            <span className="flex items-center gap-1 text-sm text-muted-foreground">
+              <Clock className="h-4 w-4" />
+              Total Duration: {formatDistanceStrict(startTime, endTime)}
+            </span>
+          }
+        />
+        {openSection === 'system' && (
+          <>
+            <ScrollArea className="h-[600px]">
+              <div className="p-4 space-y-8">
+                {sortedLogs.map((log, index) => {
+                  const hasNextLog = index < sortedLogs.length - 1;
+                  const prevLog = index > 0 ? sortedLogs[index - 1] : null;
+                  const timeBetween = prevLog ? getTimeBetween(prevLog.timestamp, log.timestamp) : 0;
+                  return (
+                    <div key={log.id} className="relative">
+                      {/* Timeline line */}
+                      {hasNextLog && (
+                        <div 
+                          className="absolute left-6 top-10 bottom-0 w-0.5 bg-border"
+                          style={{ left: '1.5rem' }}
+                        />
+                      )}
+                      {/* Log entry */}
+                      <div className={`
+                        relative flex gap-4 p-4 rounded-lg border
+                        ${getStatusColor(log.status)}
+                      `}>
+                        {/* Status icon */}
+                        <div className="mt-1">
                           {getStatusIcon(log.status)}
                         </div>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {log.summary}
-                        </p>
-                      </div>
-                      <div className="flex flex-col items-end gap-1">
-                        <div className="text-xs text-muted-foreground">
-                          {formatDistanceToNow(new Date(log.timestamp))} ago
+                        {/* Content */}
+                        <div className="flex-1 space-y-2">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h4 className="font-medium text-base">{log.name}</h4>
+                            <Badge variant="outline" className="text-xs font-mono">{log.method}</Badge>
+                            <span className="text-xs text-muted-foreground break-all font-mono">{log.url}</span>
+                            <Badge variant="secondary" className="text-xs">{log.channel}</Badge>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+                            <span>Time: {format(new Date(log.timestamp), 'yyyy-MM-dd HH:mm:ss')}</span>
+                            <span>Duration: <b>{log.duration}ms</b></span>
+                            {prevLog && (
+                              <span>+{timeBetween}ms since last call</span>
+                            )}
+                          </div>
+                          <div className="flex gap-2 mt-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => { setSelectedLog(log); setDrawerOpen(true); }}
+                              className="flex items-center gap-2"
+                            >
+                              <Eye className="h-4 w-4" />
+                              View Details
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDownload(log)}
+                              className="flex items-center gap-2"
+                            >
+                              <Download className="h-4 w-4" />
+                              Download Log CSV
+                            </Button>
+                          </div>
                         </div>
-                        {log.duration && (
-                          <Badge variant="secondary" className="text-xs">
-                            {log.duration}ms
-                          </Badge>
-                        )}
+                      </div>
+                      {/* Progress indicator */}
+                      <div className="absolute left-0 top-6">
+                        <Badge 
+                          variant="outline" 
+                          className="text-xs"
+                          style={{ transform: 'translateX(-50%)' }}
+                        >
+                          {index + 1}
+                        </Badge>
                       </div>
                     </div>
-
-                    {/* Metadata */}
-                    {log.metadata && (
-                      <>
-                        <Separator />
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
-                          {log.metadata.endpoint && (
-                            <div>
-                              <span className="text-muted-foreground">Endpoint: </span>
-                              <span className="font-mono">{log.metadata.endpoint}</span>
-                            </div>
-                          )}
-                          {log.metadata.method && (
-                            <div>
-                              <span className="text-muted-foreground">Method: </span>
-                              <span className="font-mono">{log.metadata.method}</span>
-                            </div>
-                          )}
-                          {log.metadata.statusCode && (
-                            <div>
-                              <span className="text-muted-foreground">Status: </span>
-                              <span className="font-mono">{log.metadata.statusCode}</span>
-                            </div>
-                          )}
-                          {log.metadata.service && (
-                            <div>
-                              <span className="text-muted-foreground">Service: </span>
-                              <span>{log.metadata.service}</span>
-                            </div>
-                          )}
-                        </div>
-                      </>
-                    )}
-
-                    {/* Details */}
-                    <div className="mt-2 p-2 bg-background rounded-md">
-                      <pre className="text-xs whitespace-pre-wrap">
-                        {log.details}
-                      </pre>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex justify-end">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => window.open(log.logUrl, '_blank')}
-                      >
-                        <Download className="h-4 w-4 mr-2" />
-                        Download Full Log
-                      </Button>
-                    </div>
-                  </div>
+                  );
+                })}
+              </div>
+            </ScrollArea>
+          </>
+        )}
+        {/* Drawer/Modal for details */}
+        {drawerOpen && selectedLog && (
+          <div className="fixed inset-0 z-50 flex">
+            <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setDrawerOpen(false)} />
+            <div className="relative ml-auto w-full max-w-2xl bg-white h-full shadow-xl flex flex-col">
+              <div className="p-4 border-b flex items-center justify-between">
+                <h4 className="font-semibold">Log Details</h4>
+                <Button variant="ghost" size="sm" onClick={() => setDrawerOpen(false)}>Close</Button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                <div>
+                  <div className="font-semibold mb-1">API Name</div>
+                  <div className="font-mono text-sm break-all">{selectedLog.name}</div>
                 </div>
-
-                {/* Progress indicator */}
-                <div className="absolute left-0 top-6">
-                  <Badge 
-                    variant="outline" 
-                    className="text-xs"
-                    style={{ transform: 'translateX(-50%)' }}
-                  >
-                    {Math.round(progress)}%
-                  </Badge>
+                <div>
+                  <div className="font-semibold mb-1">Method</div>
+                  <div className="font-mono text-sm">{selectedLog.method}</div>
+                </div>
+                <div>
+                  <div className="font-semibold mb-1">URL</div>
+                  <div className="font-mono text-xs break-all">{selectedLog.url}</div>
+                </div>
+                <div>
+                  <div className="font-semibold mb-1">Channel</div>
+                  <div className="font-mono text-sm">{selectedLog.channel}</div>
+                </div>
+                <div>
+                  <div className="font-semibold mb-1">Status</div>
+                  <div className="font-mono text-sm">{selectedLog.status}</div>
+                </div>
+                <div>
+                  <div className="font-semibold mb-1">Timestamp</div>
+                  <div className="font-mono text-xs">{format(new Date(selectedLog.timestamp), 'yyyy-MM-dd HH:mm:ss')}</div>
+                </div>
+                <div>
+                  <div className="font-semibold mb-1">Duration</div>
+                  <div className="font-mono text-sm">{selectedLog.duration}ms</div>
+                </div>
+                <Separator />
+                <div>
+                  <div className="font-semibold mb-1">Request</div>
+                  <pre className="bg-gray-100 rounded p-2 text-xs overflow-x-auto whitespace-pre-wrap">{JSON.stringify(JSON.parse(selectedLog.log.requestBody), null, 2)}</pre>
+                </div>
+                <div>
+                  <div className="font-semibold mb-1">Response</div>
+                  <pre className="bg-gray-100 rounded p-2 text-xs overflow-x-auto whitespace-pre-wrap">
+                    {(() => {
+                      try {
+                        const parsed = JSON.parse(selectedLog.log.responseBody);
+                        // If error field is a stringified JSON, try to parse it
+                        if (parsed && typeof parsed.error === 'string') {
+                          try {
+                            const errorObj = JSON.parse(parsed.error);
+                            return JSON.stringify({ ...parsed, error: errorObj }, null, 2);
+                          } catch {
+                            // Not a JSON string, just show as is
+                            return JSON.stringify(parsed, null, 2);
+                          }
+                        }
+                        return JSON.stringify(parsed, null, 2);
+                      } catch {
+                        return selectedLog.log.responseBody;
+                      }
+                    })()}
+                  </pre>
                 </div>
               </div>
-            );
-          })}
-        </div>
-      </ScrollArea>
-    </Card>
+              <div className="p-4 border-t flex justify-end">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleDownload(selectedLog)}
+                  className="flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Download Log CSV
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+      </Card>
+      {/* Omni Order Logs Section */}
+      <Card className="overflow-hidden">
+        <SectionHeader label="Omni Order Logs" section="omni" />
+        {openSection === 'omni' && (
+          <OmniOrderLogsTimeline />
+        )}
+      </Card>
+      {/* Order Audits Section */}
+      <Card className="overflow-hidden">
+        <SectionHeader label="Order Audits" section="audit" />
+        {openSection === 'audit' && (
+          <div className="p-6 text-muted-foreground text-center">Order Audits content goes here.</div>
+        )}
+      </Card>
+    </div>
   );
 } 

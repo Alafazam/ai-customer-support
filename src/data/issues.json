@@ -16,7 +16,7 @@
       "status": "open",
       "priority": "high",
       "type": "Order Processing",
-      "channel": "System Alert",
+      "channel": "Flipkart",
       "customer": {
         "name": "John Doe",
         "email": "john@example.com",
