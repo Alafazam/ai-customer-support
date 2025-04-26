@@ -1,7 +1,9 @@
 'use client';
 
 import Image from 'next/image';
+import { usePathname, useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Building2, LogOut, User } from 'lucide-react';
+import { ArrowLeft, Building2, LogOut, User } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import Cookies from 'js-cookie';
 
@@ -19,9 +21,12 @@ interface UserData {
   lastName: string;
   email: string;
   clientName?: string;
+  role?: 'SUPPORT_AGENT' | 'CUSTOMER';
 }
 
 export default function Navbar() {
+  const router = useRouter();
+  const pathname = usePathname();
   const [user, setUser] = useState<UserData | null>(null);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -38,18 +43,33 @@ export default function Navbar() {
     window.location.href = '/login';
   };
 
+  const showBackButton = pathname.startsWith('/issues/') && user?.role === 'SUPPORT_AGENT';
+
   return (
     <nav className="fixed top-0 left-0 right-0 h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50">
       <div className="container h-full flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Image
-            src="/bot-avatar.png"
-            alt="Omni Sahayak"
-            width={32}
-            height={32}
-            className="rounded-full"
-          />
-          <span className="font-semibold text-lg">Omni Sahayak</span>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Image
+              src="/bot-avatar.png"
+              alt="Omni Sahayak"
+              width={32}
+              height={32}
+              className="rounded-full"
+            />
+            <span className="font-semibold text-lg">Omni Sahayak</span>
+          </div>
+          
+          {showBackButton && (
+            <Button
+              variant="ghost"
+              className="gap-2"
+              onClick={() => router.replace('/dashboard')}
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Dashboard
+            </Button>
+          )}
         </div>
         
         <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>

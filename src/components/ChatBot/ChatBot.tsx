@@ -1,15 +1,13 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChatState, Attachment } from '@/types/chat';
 import { useConversation } from '@11labs/react';
 import { cn } from "@/lib/utils";
-import { SendIcon } from '@/components/icons/SendIcon';
-import { Paperclip, X } from 'lucide-react';
+import { Paperclip, X, PhoneCall, PhoneOff } from 'lucide-react';
+import { AIAgentIcon } from '@/components/icons/AIAgentIcon';
 
 // Define types for ElevenLabs messages
 interface ElevenLabsMessage {
@@ -24,27 +22,27 @@ export default function ChatBot() {
     issueType: 'UNKNOWN',
     currentStep: 'INITIAL',
   });
-  const [inputValue, setInputValue] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [isListening, setIsListening] = useState(false);
   const scrollViewportRef = useRef<HTMLDivElement>(null);
   const messageCountRef = useRef(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const conversation = useConversation({
     onConnect: () => {
       console.log('Connected to ElevenLabs');
       setError(null);
+      setIsListening(true);
     },
     onDisconnect: () => {
       console.log('Disconnected from ElevenLabs');
       setError(null);
+      setIsListening(false);
     },
     onMessage: (message: ElevenLabsMessage) => {
       console.log('Message:', message);
-      // Handle both voice and text responses
       if (message.source === 'ai') {
-        // For voice responses, message.message will contain the transcribed text
-        // For text responses, message.text will contain the response
         const content = message.message || message.text;
         if (content) {
           addMessage(content, 'assistant');
@@ -54,6 +52,7 @@ export default function ChatBot() {
     onError: (message: string) => {
       console.error('Error:', message);
       setError(message || 'An error occurred');
+      setIsListening(false);
     },
   });
 
@@ -89,33 +88,26 @@ export default function ChatBot() {
     try {
       setError(null);
       
-      // Request microphone permission first
       try {
         await navigator.mediaDevices.getUserMedia({ audio: true });
       } catch {
         throw new Error('Please allow microphone access to use voice chat');
       }
 
-      // Get configuration from server
       const config = await getElevenLabsConfig();
       
       if (!config.agentId || !config.apiKey) {
         throw new Error('Voice chat is not configured. Please contact support.');
       }
 
-      // Try signed URL first
       try {
         const signedUrl = await getSignedUrl();
         await conversation.startSession({ signedUrl });
         console.log('Connected using signed URL');
       } catch (signedUrlError) {
         console.log('Falling back to direct connection', signedUrlError);
-        // Fall back to direct connection
         try {
-          // Remove any URL encoding from the agent ID
           const cleanAgentId = decodeURIComponent(config.agentId);
-          
-          // Connect without any authorization prefix
           await conversation.startSession({
             agentId: cleanAgentId,
             authorization: config.apiKey
@@ -131,6 +123,7 @@ export default function ChatBot() {
     } catch (error: unknown) {
       console.error('Failed to start voice chat:', error);
       setError(error instanceof Error ? error.message : 'Failed to start voice chat. Please try again.');
+      setIsListening(false);
     }
   }, [conversation]);
 
@@ -138,6 +131,7 @@ export default function ChatBot() {
     try {
       await conversation.endSession();
       setError(null);
+      setIsListening(false);
     } catch (error: unknown) {
       console.error('Failed to stop voice chat:', error);
       setError(error instanceof Error ? error.message : 'Failed to stop voice chat');
@@ -178,7 +172,6 @@ export default function ChatBot() {
         type,
       };
 
-      // Generate preview URL for images
       if (type === 'image') {
         attachment.previewUrl = URL.createObjectURL(file);
       }
@@ -199,45 +192,7 @@ export default function ChatBot() {
     });
   };
 
-  const processUserInput = async (e?: React.FormEvent) => {
-    if (e) {
-      e.preventDefault();
-    }
-    
-    if (!inputValue.trim() && attachments.length === 0) return;
-
-    // Add message with attachments
-    await addMessage(inputValue || 'Attached files', 'user', attachments);
-    
-    // Send text to ElevenLabs agent
-    if (inputValue.trim() && conversation.status === 'connected') {
-      try {
-        // Display the message locally
-        const userMessage = inputValue.trim();
-        
-        // Get configuration from server
-        const config = await getElevenLabsConfig();
-        
-        // Let the voice agent know about the text input
-        // This will trigger the onMessage handler when the agent responds
-        await conversation.startSession({
-          agentId: config.agentId,  // Use agent ID from environment config
-          origin: 'text',
-          customLlmExtraBody: {
-            text: userMessage
-          }
-        });
-      } catch (error) {
-        console.error('Failed to send text to agent:', error);
-        setError('Failed to send message to agent. Please try again.');
-      }
-    }
-    
-    // Clear input and attachments
-    setInputValue('');
-    setAttachments([]);
-  };
-
+  // Scroll to bottom when new messages are added
   useEffect(() => {
     if (scrollViewportRef.current) {
       scrollViewportRef.current.scrollTo({
@@ -247,214 +202,186 @@ export default function ChatBot() {
     }
   }, [chatState.messages]);
 
-  // Cleanup preview URLs when component unmounts
-  useEffect(() => {
-    return () => {
-      attachments.forEach(attachment => {
-        if (attachment.previewUrl) {
-          URL.revokeObjectURL(attachment.previewUrl);
-        }
-      });
-    };
-  }, []);
-
   return (
-    <div className="fixed top-16 inset-x-0 bottom-0 flex items-center justify-center bg-background px-6 pb-6 pt-4">
-      <div className="w-full md:w-[70%] h-full max-w-[1200px]">
-        <Card className="w-full h-full grid grid-rows-[auto,1fr,auto] overflow-hidden">
-          <CardHeader className="space-y-2">
-            <div className="flex justify-center">
-              <Button
-                onClick={conversation.status === 'connected' ? stopVoiceChat : startVoiceChat}
-                variant="ghost"
-                size="icon"
-                className="relative w-24 h-24 rounded-full hover:bg-transparent"
+    <div className={cn(
+      "fixed inset-x-0 bottom-0 top-[72px]",
+      "flex items-center justify-center overflow-hidden",
+      chatState.messages.length === 0 && "top-0"
+    )}>
+      <div className={cn(
+        "w-full h-full max-w-7xl flex items-center justify-center",
+        chatState.messages.length === 0 ? "p-0" : "p-4"
+      )}>
+        <div className={cn(
+          "flex flex-col w-full h-full",
+          chatState.messages.length === 0 
+            ? "md:w-[600px] md:h-auto" 
+            : "md:flex-row",
+          chatState.messages.length === 0 && "md:shadow-2xl md:rounded-2xl overflow-hidden"
+        )}>
+          {/* Animation Section */}
+          <div className={cn(
+            chatState.messages.length === 0 
+              ? "h-[100dvh] md:h-[600px] w-full" 
+              : "h-[400px] md:h-full w-full md:w-[35%] lg:w-[30%]",
+            "flex flex-col items-center justify-between shrink-0",
+            "bg-gradient-to-br from-gray-50 to-gray-100",
+            chatState.messages.length === 0 
+              ? "rounded-none md:rounded-2xl"
+              : "rounded-t-lg md:rounded-l-lg md:rounded-r-none",
+            chatState.messages.length > 0 && "md:border-r border-border"
+          )}>
+            {/* Center container with padding for button */}
+            <div className="flex-1 w-full flex flex-col items-center justify-center p-8">
+              <button
+                onClick={isListening ? stopVoiceChat : startVoiceChat}
+                className={cn(
+                  "relative w-full max-w-[280px] aspect-square p-4",
+                  "rounded-full bg-gradient-to-br from-white/50 to-white/30 backdrop-blur-sm",
+                  "hover:scale-105 transition-all duration-300 cursor-pointer",
+                  "group"
+                )}
               >
-                {/* Base circle with ping animation when active */}
-                <div className={cn(
-                  "absolute inset-0 rounded-full",
-                  conversation.status === 'connected' ? "bg-primary/10 animate-ping" : "bg-muted"
-                )} />
-                
-                {/* Middle circle with pulse animation when active */}
-                <div className={cn(
-                  "absolute inset-4 rounded-full",
-                  conversation.status === 'connected' ? "bg-primary/20 animate-pulse" : "bg-muted/50"
-                )} />
-                
-                {/* Microphone icon */}
-                <div className="relative">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className={cn(
-                      "w-12 h-12 transition-colors duration-200",
-                      conversation.status === 'connected' ? "text-primary animate-pulse" : "text-muted-foreground"
-                    )}
-                  >
-                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-                    <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                    <line x1="12" y1="19" x2="12" y2="22" />
-                  </svg>
-                  
-                  {/* Sound wave circles when active */}
-                  {conversation.status === 'connected' && (
+                <AIAgentIcon isActive={isListening} />
+                <span className={cn(
+                  "absolute -bottom-8 left-1/2 -translate-x-1/2 text-sm font-medium whitespace-nowrap",
+                  "opacity-0 group-hover:opacity-100 transition-opacity duration-200",
+                  "flex items-center gap-2",
+                  isListening ? "text-gray-700" : "text-gray-600"
+                )}>
+                  {isListening ? (
                     <>
-                      <div className="absolute -right-4 top-1/2 w-2 h-2 bg-primary rounded-full animate-soundwave1" />
-                      <div className="absolute -left-4 top-1/2 w-2 h-2 bg-primary rounded-full animate-soundwave2" />
-                      <div className="absolute top-1/2 -translate-y-6 left-1/2 -translate-x-1/2 w-2 h-2 bg-primary rounded-full animate-soundwave3" />
-                      <div className="absolute top-1/2 translate-y-6 left-1/2 -translate-x-1/2 w-2 h-2 bg-primary rounded-full animate-soundwave4" />
+                      <PhoneOff className="h-4 w-4" />
+                      Tap to Stop
+                    </>
+                  ) : (
+                    <>
+                      <PhoneCall className="h-4 w-4" />
+                      Tap to Talk
                     </>
                   )}
-                </div>
-              </Button>
-            </div>
-            {error && (
-              <p className="text-red-500 text-sm text-center mt-2 px-4 break-words max-w-full">
-                {error}
-              </p>
-            )}
-          </CardHeader>
+                </span>
+              </button>
 
-          <CardContent className="p-0 overflow-hidden">
-            <ScrollArea
-              ref={scrollViewportRef}
-              className="h-full"
-              type="always"
-            >
-              <div className="flex flex-col p-4 gap-4">
-                {chatState.messages.length === 0 ? (
-                  <div className="h-full flex items-center justify-center">
-                    <div className="text-center p-6 rounded-lg bg-secondary/50 backdrop-blur-sm shadow-inner">
-                      <h3 className="text-xl font-semibold text-primary mb-2">
-                        I am your Omni Sahayak
-                      </h3>
-                      <p className="text-muted-foreground">
-                        How may I help you today?
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  chatState.messages.map((message) => (
-                    <div
-                      key={message.id}
-                      className={cn(
-                        "flex flex-col gap-2 rounded-lg px-3 py-2 text-sm",
-                        message.type === "user"
-                          ? "ml-auto bg-primary text-primary-foreground"
-                          : "bg-muted",
-                        "max-w-[80%] break-words"
-                      )}
-                    >
-                      <div className="whitespace-pre-wrap overflow-hidden">{message.content}</div>
-                      {message.attachments && message.attachments.length > 0 && (
-                        <div className="grid grid-cols-2 gap-2 mt-2 w-full">
-                          {message.attachments.map((attachment) => (
-                            <div key={attachment.id} className="relative w-full">
-                              {attachment.type === 'image' && attachment.previewUrl ? (
-                                <img
-                                  src={attachment.previewUrl}
-                                  alt={attachment.file.name}
-                                  className="w-full h-[80px] object-cover rounded cursor-pointer"
-                                  onClick={() => window.open(attachment.previewUrl, '_blank')}
-                                />
-                              ) : (
-                                <div
-                                  className="w-full h-[80px] bg-secondary/50 rounded flex flex-col items-center justify-center cursor-pointer text-xs"
-                                  onClick={() => window.open(URL.createObjectURL(attachment.file), '_blank')}
-                                >
-                                  <div className="px-2 text-center break-words w-full">
-                                    {attachment.file.name}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))
-                )}
-              </div>
-            </ScrollArea>
-          </CardContent>
-
-          <CardFooter className="p-4 pt-2 shrink-0">
-            <div className="flex flex-col gap-2 w-full">
-              <form onSubmit={processUserInput} className="flex w-full gap-2">
-                <input
-                  type="file"
-                  id="file-input"
-                  className="hidden"
-                  onChange={(e) => e.target.files && handleAttachFiles(e.target.files)}
-                  multiple
-                  accept="image/*,.pdf,.doc,.docx,.txt"
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="shrink-0"
-                  onClick={() => document.getElementById('file-input')?.click()}
-                >
-                  <Paperclip className="h-5 w-5" />
-                </Button>
-                <Input
-                  placeholder="Type your message..."
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  className="flex-1"
-                />
-                <Button 
-                  type="submit" 
-                  size="icon"
-                  className="shrink-0"
-                  disabled={!inputValue.trim() && attachments.length === 0}
-                >
-                  <SendIcon />
-                </Button>
-              </form>
-
-              {attachments.length > 0 && (
-                <div className="grid grid-cols-6 gap-2 pt-3 px-2">
-                  {attachments.map((attachment) => (
-                    <div
-                      key={attachment.id}
-                      className="relative flex flex-col items-center pt-2 px-2"
-                    >
-                      <div className="w-10 h-10 rounded-lg overflow-hidden bg-secondary/50 flex items-center justify-center relative group">
-                        {attachment.type === 'image' && attachment.previewUrl ? (
-                          <img
-                            src={attachment.previewUrl}
-                            alt="Preview"
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <Paperclip className="h-4 w-4" />
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="absolute -top-[0.225rem] -right-[0.225rem] h-6 w-6 rounded-full bg-destructive hover:bg-destructive/90 flex items-center justify-center shadow-sm border-2 border-background"
-                          onClick={() => handleRemoveAttachment(attachment.id)}
-                        >
-                          <X className="h-3.5 w-3.5 text-destructive-foreground" />
-                        </Button>
-                      </div>
-                      <span className="text-[10px] text-muted-foreground mt-1 w-full text-center truncate px-1">
-                        {attachment.file.name}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+              {chatState.messages.length === 0 && (
+                <p className="mt-16 text-center text-sm text-gray-600/80">
+                  Start a conversation with our AI Support Agent
+                </p>
               )}
             </div>
-          </CardFooter>
-        </Card>
+
+            {/* Fixed bottom container for attachment button - Only show when conversation started */}
+            {chatState.messages.length > 0 && (
+              <div className="w-full h-16 flex items-center justify-center border-t border-gray-200/50">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  multiple
+                  onChange={(e) => e.target.files && handleAttachFiles(e.target.files)}
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="rounded-full"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Paperclip className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Chat Section */}
+          {chatState.messages.length > 0 && (
+            <Card className="flex-1 min-h-0 border-0 md:border-l md:rounded-l-none flex flex-col h-full md:pl-4">
+              <CardContent className="p-0 flex flex-col h-full">
+                {/* Main Content Area with Messages */}
+                <div className="flex-1 overflow-y-auto" style={{ height: 'calc(100% - 80px)' }}>
+                  <div className="p-4 space-y-4">
+                    {chatState.messages.map((message) => (
+                      <div
+                        key={message.id}
+                        className={cn(
+                          "flex flex-col gap-2 rounded-lg px-3 py-2 text-sm break-words",
+                          message.type === 'user'
+                            ? "ml-auto bg-primary text-primary-foreground"
+                            : "bg-muted",
+                          "max-w-[80%] min-w-0 w-fit"
+                        )}
+                      >
+                        <div className="whitespace-pre-wrap">{message.content}</div>
+                        {message.attachments && message.attachments.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-2 w-full">
+                            {message.attachments.map((attachment) => (
+                              <div
+                                key={attachment.id}
+                                className="relative w-16 h-16 rounded-md overflow-hidden"
+                              >
+                                {attachment.type === 'image' && attachment.previewUrl ? (
+                                  <img
+                                    src={attachment.previewUrl}
+                                    alt="attachment"
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full bg-muted flex items-center justify-center">
+                                    <Paperclip className="h-6 w-6 text-muted-foreground" />
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Error Message */}
+                {error && (
+                  <div className="p-2 text-sm text-red-500 text-center bg-red-50">
+                    {error}
+                  </div>
+                )}
+
+                {/* Attachments Preview - Fixed at Bottom */}
+                {attachments.length > 0 && (
+                  <div className="h-20 border-t bg-background">
+                    <div className="h-full overflow-x-auto">
+                      <div className="flex gap-1 p-2 h-full">
+                        {attachments.map((attachment) => (
+                          <div
+                            key={attachment.id}
+                            className="relative w-16 h-16 flex-shrink-0 rounded-md overflow-hidden group"
+                          >
+                            {attachment.type === 'image' && attachment.previewUrl ? (
+                              <img
+                                src={attachment.previewUrl}
+                                alt="attachment"
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-muted flex items-center justify-center">
+                                <Paperclip className="h-6 w-6 text-muted-foreground" />
+                              </div>
+                            )}
+                            <button
+                              onClick={() => handleRemoveAttachment(attachment.id)}
+                              className="absolute top-1 right-1 p-1 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
     </div>
   );

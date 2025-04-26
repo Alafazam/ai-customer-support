@@ -62,7 +62,7 @@ export function middleware(request: NextRequest) {
     const decoded = jwtDecode<JWTPayload>(authToken)
     
     // Protect dashboard routes for support agents only
-    if (pathname.startsWith('/dashboard') && decoded.role !== 'SUPPORT_AGENT') {
+    if ((pathname.startsWith('/dashboard') || pathname.startsWith('/issues')) && decoded.role !== 'SUPPORT_AGENT') {
       return NextResponse.redirect(new URL('/login', request.url))
     }
 
@@ -85,6 +85,7 @@ export const config = {
     '/',
     '/chat/:path*',
     '/dashboard/:path*',
+    '/issues/:path*',
     '/login',
     '/support-login'
   ]

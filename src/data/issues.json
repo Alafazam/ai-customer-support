@@ -1,0 +1,244 @@
+{
+  "metrics": {
+    "totalIssues": 150,
+    "openIssues": 45,
+    "resolvedIssues": 95,
+    "inProgressIssues": 10,
+    "averageResponseTime": "2.5h",
+    "slaAdherence": 94.5,
+    "criticalIssues": 5,
+    "customerSatisfaction": 4.2
+  },
+  "issues": [
+    {
+      "id": "ISSUE-001",
+      "title": "Order #12345 - Packing Process Failed",
+      "status": "open",
+      "priority": "high",
+      "type": "Order Processing",
+      "channel": "System Alert",
+      "customer": {
+        "name": "John Doe",
+        "email": "john@example.com",
+        "phone": "+1-555-0123"
+      },
+      "assignee": "Sarah Wilson",
+      "createdAt": "2024-03-15T10:30:00Z",
+      "updatedAt": "2024-03-15T14:20:00Z",
+      "responseTime": "1.5h",
+      "slaStatus": "within_limit",
+      "slaDeadline": "2024-03-15T16:30:00Z",
+      "firstResponseSent": "2024-03-15T11:45:00Z",
+      "firstResponseTime": "1h 15m",
+      "description": "Order packing process failed in the warehouse management system. Multiple system components reported errors during the process.",
+      "attachments": [
+        {
+          "name": "error_screenshot.png",
+          "type": "image/png",
+          "url": "/attachments/error_screenshot.png",
+          "size": "245KB"
+        }
+      ],
+      "aiSummary": "Order packing process failure occurred due to a cascade of system errors starting with inventory verification. The root cause appears to be a database deadlock during high-concurrency operations.",
+      "technicalRca": "Database deadlock occurred during simultaneous inventory updates, causing the packing process to fail. This was exacerbated by high system load during peak hours. The deadlock occurred in the inventory_locks table when multiple transactions attempted to acquire exclusive locks on overlapping inventory records. Transaction logs show concurrent attempts to update inventory levels from multiple packing stations.",
+      "customerRca": "The order processing was temporarily delayed due to high system load during our peak hours. Our warehouse management system detected a resource conflict while processing multiple orders simultaneously. We have already implemented measures to prevent such conflicts and optimize our order processing capacity.",
+      "systemLogs": [
+        {
+          "id": "log_001",
+          "name": "Order Received",
+          "timestamp": "2024-03-15T10:30:00Z",
+          "status": "success",
+          "type": "SERVICE",
+          "summary": "Order successfully received by the system",
+          "details": "Order #12345 received with 3 items. Total value: $156.99",
+          "logUrl": "/logs/order_service_001.log",
+          "duration": 45,
+          "metadata": {
+            "service": "Order Service",
+            "orderId": "12345",
+            "customerId": "CUST-789"
+          }
+        },
+        {
+          "id": "log_002",
+          "name": "Inventory Check",
+          "timestamp": "2024-03-15T10:30:45Z",
+          "status": "error",
+          "type": "DATABASE",
+          "summary": "Failed to verify inventory levels",
+          "details": "Database deadlock detected while updating inventory records. Transaction rolled back.",
+          "logUrl": "/logs/inventory_service_001.log",
+          "duration": 2150,
+          "parentId": "log_001",
+          "metadata": {
+            "service": "Inventory Service",
+            "method": "POST",
+            "endpoint": "/api/inventory/verify",
+            "statusCode": 500,
+            "errorCode": "DEADLOCK_DETECTED"
+          }
+        },
+        {
+          "id": "log_003",
+          "name": "Retry Inventory Check",
+          "timestamp": "2024-03-15T10:31:00Z",
+          "status": "success",
+          "type": "DATABASE",
+          "summary": "Successfully verified inventory levels on retry",
+          "details": "Inventory verification completed after retry. All items available.",
+          "logUrl": "/logs/inventory_service_002.log",
+          "duration": 890,
+          "parentId": "log_002",
+          "metadata": {
+            "service": "Inventory Service",
+            "method": "POST",
+            "endpoint": "/api/inventory/verify",
+            "statusCode": 200
+          }
+        },
+        {
+          "id": "log_004",
+          "name": "Warehouse Assignment",
+          "timestamp": "2024-03-15T10:31:45Z",
+          "status": "success",
+          "type": "SERVICE",
+          "summary": "Order assigned to warehouse for picking",
+          "details": "Order assigned to Warehouse #3 based on inventory location and load balancing.",
+          "logUrl": "/logs/warehouse_service_001.log",
+          "duration": 120,
+          "metadata": {
+            "service": "Warehouse Service",
+            "warehouseId": "WH-003",
+            "orderId": "12345"
+          }
+        },
+        {
+          "id": "log_005",
+          "name": "Picking Process",
+          "timestamp": "2024-03-15T10:32:00Z",
+          "status": "warning",
+          "type": "SERVICE",
+          "summary": "Picking process delayed",
+          "details": "Picking process taking longer than expected due to high warehouse load.",
+          "logUrl": "/logs/picking_service_001.log",
+          "duration": 4500,
+          "metadata": {
+            "service": "Picking Service",
+            "warehouseId": "WH-003",
+            "orderId": "12345",
+            "picker": "PICK-123"
+          }
+        },
+        {
+          "id": "log_006",
+          "name": "Packing Station Assignment",
+          "timestamp": "2024-03-15T10:33:00Z",
+          "status": "error",
+          "type": "SERVICE",
+          "summary": "Failed to assign packing station",
+          "details": "No available packing stations found. All stations reporting busy status.",
+          "logUrl": "/logs/packing_service_001.log",
+          "duration": 350,
+          "metadata": {
+            "service": "Packing Service",
+            "warehouseId": "WH-003",
+            "orderId": "12345"
+          }
+        },
+        {
+          "id": "log_007",
+          "name": "System Alert Generated",
+          "timestamp": "2024-03-15T10:33:15Z",
+          "status": "success",
+          "type": "NOTIFICATION",
+          "summary": "Alert sent to warehouse supervisor",
+          "details": "High priority alert generated for warehouse supervisor regarding packing station availability.",
+          "logUrl": "/logs/notification_service_001.log",
+          "duration": 65,
+          "metadata": {
+            "service": "Notification Service",
+            "alertId": "ALERT-456",
+            "severity": "HIGH"
+          }
+        }
+      ],
+      "actions": {
+        "canSendResponse": true,
+        "canCreateOIM": true,
+        "canCreateOIIM": false,
+        "canGenerateRca": true,
+        "availableTemplates": [
+          {
+            "id": "template_001",
+            "name": "Order Processing Delay",
+            "type": "response"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ISSUE-002",
+      "title": "Payment failed multiple times",
+      "status": "in_progress",
+      "priority": "critical",
+      "customer": {
+        "name": "Jane Smith",
+        "email": "jane@example.com"
+      },
+      "assignee": "Mike Brown",
+      "createdAt": "2024-03-15T09:15:00Z",
+      "updatedAt": "2024-03-15T13:45:00Z",
+      "responseTime": "0.5h",
+      "slaStatus": "within_limit",
+      "description": "Customer unable to complete payment for order #12345"
+    },
+    {
+      "id": "ISSUE-003",
+      "title": "Product delivery delayed",
+      "status": "resolved",
+      "priority": "medium",
+      "customer": {
+        "name": "Mike Johnson",
+        "email": "mike@example.com"
+      },
+      "assignee": "Emily Davis",
+      "createdAt": "2024-03-14T16:45:00Z",
+      "updatedAt": "2024-03-15T11:30:00Z",
+      "responseTime": "2.0h",
+      "slaStatus": "within_limit",
+      "description": "Delivery of order #54321 delayed by courier"
+    },
+    {
+      "id": "ISSUE-004",
+      "title": "Feature request: Dark mode",
+      "status": "open",
+      "priority": "low",
+      "customer": {
+        "name": "Alice Brown",
+        "email": "alice@example.com"
+      },
+      "assignee": "Tom Wilson",
+      "createdAt": "2024-03-14T14:20:00Z",
+      "updatedAt": "2024-03-15T09:15:00Z",
+      "responseTime": "3.0h",
+      "slaStatus": "exceeded",
+      "description": "Customer requesting dark mode feature for mobile app"
+    },
+    {
+      "id": "ISSUE-005",
+      "title": "Integration error with API",
+      "status": "in_progress",
+      "priority": "high",
+      "customer": {
+        "name": "Robert Chen",
+        "email": "robert@example.com"
+      },
+      "assignee": "Sarah Wilson",
+      "createdAt": "2024-03-14T11:00:00Z",
+      "updatedAt": "2024-03-15T10:45:00Z",
+      "responseTime": "1.0h",
+      "slaStatus": "within_limit",
+      "description": "API integration failing for payment gateway"
+    }
+  ]
+} 
