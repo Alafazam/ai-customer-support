@@ -1,11 +1,14 @@
-import ChatBot from '@/components/ChatBot/ChatBot';
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24">
-      <div className="relative flex place-items-center">
-        <ChatBot />
-      </div>
-    </main>
-  );
+  const router = useRouter();
+
+  useEffect(() => {
+    router.replace('/login');
+  }, [router]);
+
+  return null;
 }

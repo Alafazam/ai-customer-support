@@ -1,0 +1,50 @@
+{
+  "order": {
+    "created_at": "2025-04-26 4:54:57",
+    "updated_at": "2025-04-26 5:59:36",
+    "channel_id": "FLIPKART",
+    "channel_order_id": "8b467cc8-a7aa-4702-8466-a8288fd1a71d",
+    "channel_order_status": "PACKED",
+    "channel_order_time": "2025-04-26 4:54:36",
+    "client_id": "1101183111",
+    "fail_reason": null,
+    "fulfillment_location_code": "LOC85a60dc71cf641ac840fe3dbb61869c6",
+    "inventory_pool_id": 1,
+    "is_gift": false,
+    "is_order_code_unique": null,
+    "is_priority": false,
+    "is_split_required": false,
+    "oms_location_id": "1101183152",
+    "on_hold": false,
+    "order_state": "ACKED",
+    "order_status": "CREATED",
+    "order_type": "SALES",
+    "parent_order_code": "OD334249859076760100",
+    "payment_type": "COD",
+    "qc_status": "PASS",
+    "start_processing_time": "2025-04-26 4:59:44"
+  },
+  "order_items": [
+    {
+      "cims_order_item_id": 30385,
+      "created_at": "2025-04-26 4:54:57",
+      "updated_at": "2025-04-26 4:55:33",
+      "channel_discount": 76,
+      "channel_serial_no": "TSHGW9G7KKGEFYUA",
+      "channel_sku_id": "TSCTDMTB0L",
+      "cims_order_id": 28385,
+      "customer_cancelled_qty": 0,
+      "global_sku_id": 1154318198,
+      "min_expiry": null,
+      "order_item_code": "334249859076760100",
+      "ordered_quantity": 1,
+      "processing_qty": 1,
+      "seller_cancelled_qty": 0,
+      "seller_discount": null,
+      "seller_reject_qty": 0,
+      "selling_price": 675,
+      "shipping_charge": 0,
+      "total_cancelled_qty": 0
+    }
+  ]
+} 
