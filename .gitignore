@@ -19,6 +19,7 @@
 
 # production
 /build
+/ai-agent
 
 # misc
 .DS_Store
