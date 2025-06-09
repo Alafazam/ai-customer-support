@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      # Add production environment variables here
+      # - DATABASE_URL=${DATABASE_URL}
+      # - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      # - JWT_SECRET=${JWT_SECRET}
+    # env_file:
+    #   - .env.production  # Uncomment if using env file
+    volumes:
+      # Mount the SQLite database if you want persistence
+      - ./prisma:/app/prisma
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s 
