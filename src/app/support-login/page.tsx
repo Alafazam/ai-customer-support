@@ -35,14 +35,20 @@ export default function SupportLoginPage() {
         throw new Error(data.error || 'Login failed');
       }
 
-      if (data.user.role !== 'SUPPORT_AGENT') {
+      if (data.user.role !== 'SUPPORT_AGENT' && data.user.role !== 'ADMIN') {
         throw new Error('Access denied. Please use the customer login page.');
       }
 
       // Set auth data if role is correct
       Cookies.set('auth_token', data.token, { expires: 7 });
       localStorage.setItem('user', JSON.stringify(data.user));
-      window.location.href = '/dashboard';
+      
+      // Redirect based on role
+      if (data.user.role === 'ADMIN') {
+        window.location.href = '/dashboard/conversations';
+      } else {
+        window.location.href = '/dashboard';
+      }
     } catch (error) {
       setError(error instanceof Error ? error.message : 'An error occurred');
       // Clear any potentially set auth data

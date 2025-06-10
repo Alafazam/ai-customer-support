@@ -1,0 +1,160 @@
+{
+    "headers": {
+      "host": "n8n.omni.increff.com",
+      "accept": "*/*",
+      "accept-encoding": "gzip, deflate, br",
+      "content-length": "4328",
+      "content-type": "application/json",
+      "elevenlabs-signature": "your-signature-here",
+      "user-agent": "node-fetch",
+      "x-cloud-trace-context": "336440e35a9286119e4dc09c768e2d70/18037189217880498588",
+      "via": "1.1 google",
+      "x-forwarded-for": "14.194.217.10, 35.244.173.152",
+      "x-forwarded-proto": "https",
+      "connection": "Keep-Alive"
+    },
+    "params": {},
+    "query": {},
+    "body": {
+      "type": "post_call_transcription",
+      "event_timestamp": 1739537297,
+      "data": {
+        "agent_id": "xyz",
+        "conversation_id": "abc",
+        "status": "done",
+        "transcript": [
+          {
+            "role": "agent",
+            "message": "Hey there angelo. How are you?",
+            "tool_calls": null,
+            "tool_results": null,
+            "feedback": null,
+            "time_in_call_secs": 0,
+            "conversation_turn_metrics": null
+          },
+          {
+            "role": "user",
+            "message": "Hey, I'm having issues with my Amazon order. The packing is not happening correctly and my order ID is AMZ-12345-67890. Can you help me with this?",
+            "tool_calls": null,
+            "tool_results": null,
+            "feedback": null,
+            "time_in_call_secs": 2,
+            "conversation_turn_metrics": null
+          },
+          {
+            "role": "agent",
+            "message": "I understand you're having issues with your Amazon order. Let me help you with that. Could you please provide more details about the packing issue? Is it that items are missing, damaged, or packaged incorrectly? Also, I've noted your order ID AMZ-12345-67890.",
+            "tool_calls": null,
+            "tool_results": null,
+            "feedback": null,
+            "time_in_call_secs": 9,
+            "conversation_turn_metrics": {
+              "convai_llm_service_ttfb": {
+                "elapsed_time": 0.3704247010173276
+              },
+              "convai_llm_service_ttf_sentence": {
+                "elapsed_time": 0.5551181449554861
+              }
+            }
+          },
+          {
+            "role": "user",
+            "message": "Yes, the items are being packaged incorrectly. Some products are missing proper padding and others are just thrown in the box without any protection. This is causing damage to the products during shipping.",
+            "tool_calls": null,
+            "tool_results": null,
+            "feedback": null,
+            "time_in_call_secs": 15,
+            "conversation_turn_metrics": null
+          },
+          {
+            "role": "agent",
+            "message": "I'm sorry to hear about the packaging issues with your order. This is definitely not acceptable. I'll create a ticket for this issue right away. I'll make sure to include your order ID AMZ-12345-67890 and the specific packaging problems you've mentioned. Our warehouse team will investigate this immediately. Is there anything else you'd like me to note about this issue?",
+            "tool_calls": null,
+            "tool_results": null,
+            "feedback": null,
+            "time_in_call_secs": 22,
+            "conversation_turn_metrics": {
+              "convai_llm_service_ttfb": {
+                "elapsed_time": 0.3204247010173276
+              },
+              "convai_llm_service_ttf_sentence": {
+                "elapsed_time": 0.4851181449554861
+              }
+            }
+          },
+          {
+            "role": "user",
+            "message": "Yes, please make sure to mention that this is a dummy mock issue only for testing purposes. My email is alafazam@gmail.com if you need to contact me further.",
+            "tool_calls": null,
+            "tool_results": null,
+            "feedback": null,
+            "time_in_call_secs": 30,
+            "conversation_turn_metrics": null
+          },
+          {
+            "role": "agent",
+            "message": "I've noted that this is a dummy mock issue for testing purposes. I'll make sure to include your email alafazam@gmail.com in the ticket. I'll create the ticket now and our team will look into the packaging issues with your order AMZ-12345-67890. Thank you for bringing this to our attention.",
+            "tool_calls": null,
+            "tool_results": null,
+            "feedback": null,
+            "time_in_call_secs": 38,
+            "conversation_turn_metrics": {
+              "convai_llm_service_ttfb": {
+                "elapsed_time": 0.2904247010173276
+              },
+              "convai_llm_service_ttf_sentence": {
+                "elapsed_time": 0.4551181449554861
+              }
+            }
+          }
+        ],
+        "metadata": {
+          "start_time_unix_secs": 1739537297,
+          "call_duration_secs": 38,
+          "cost": 296,
+          "deletion_settings": {
+            "deletion_time_unix_secs": 1802609320,
+            "deleted_logs_at_time_unix_secs": null,
+            "deleted_audio_at_time_unix_secs": null,
+            "deleted_transcript_at_time_unix_secs": null,
+            "delete_transcript_and_pii": true,
+            "delete_audio": true
+          },
+          "feedback": {
+            "overall_score": null,
+            "likes": 0,
+            "dislikes": 0
+          },
+          "authorization_method": "authorization_header",
+          "charging": {
+            "dev_discount": true
+          },
+          "termination_reason": ""
+        },
+        "analysis": {
+          "evaluation_criteria_results": {},
+          "data_collection_results": {},
+          "call_successful": "success",
+          "transcript_summary": "The conversation begins with the agent greeting the user. The user reports issues with their Amazon order (ID: AMZ-12345-67890), specifically problems with packaging where items are missing proper padding and protection, causing damage during shipping. The agent acknowledges the issue and offers to create a ticket. The user clarifies that this is a dummy mock issue for testing purposes and provides their email (alafazam@gmail.com) for further contact. The agent confirms they will create a ticket with all the provided information."
+        },
+        "conversation_initiation_client_data": {
+          "conversation_config_override": {
+            "agent": {
+              "prompt": null,
+              "first_message": null,
+              "language": "en"
+            },
+            "tts": {
+              "voice_id": null
+            }
+          },
+          "custom_llm_extra_body": {},
+          "dynamic_variables": {
+            "user_name": "angelo"
+          }
+        }
+      }
+    },
+    "webhookUrl": "https://n8n.omni.increff.com/webhook-test/create-ticket",
+    "executionMode": "test"
+  }

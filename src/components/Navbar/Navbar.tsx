@@ -21,7 +21,7 @@ interface UserData {
   lastName: string;
   email: string;
   clientName?: string;
-  role?: 'SUPPORT_AGENT' | 'CUSTOMER';
+  role?: 'SUPPORT_AGENT' | 'CUSTOMER' | 'ADMIN';
 }
 
 export default function Navbar() {
@@ -43,7 +43,7 @@ export default function Navbar() {
     window.location.href = '/login';
   };
 
-  const showBackButton = pathname.startsWith('/issues/') && user?.role === 'SUPPORT_AGENT';
+  const showBackButton = pathname.startsWith('/issues/') && (user?.role === 'SUPPORT_AGENT' || user?.role === 'ADMIN');
 
   return (
     <nav className="fixed top-0 left-0 right-0 h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50">

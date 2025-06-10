@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server'
 import { jwtDecode } from 'jwt-decode'
 
 interface JWTPayload {
-  role: 'SUPPORT_AGENT' | 'CUSTOMER';
+  role: 'SUPPORT_AGENT' | 'CUSTOMER' | 'ADMIN';
 }
 
 export function middleware(request: NextRequest) {
@@ -23,21 +23,28 @@ export function middleware(request: NextRequest) {
           if (decoded.role === 'CUSTOMER') {
             return NextResponse.redirect(new URL('/chat', request.url))
           } else {
-            // Support agent trying to access customer login
+            // Support agent or admin trying to access customer login
             return NextResponse.redirect(new URL('/support-login', request.url))
           }
         } else if (pathname === '/support-login') {
           // If on support login page
           if (decoded.role === 'SUPPORT_AGENT') {
             return NextResponse.redirect(new URL('/dashboard', request.url))
+          } else if (decoded.role === 'ADMIN') {
+            return NextResponse.redirect(new URL('/dashboard/conversations', request.url))
           } else {
             // Customer trying to access support login
             return NextResponse.redirect(new URL('/login', request.url))
           }
         } else {
           // For homepage or other public routes
-          const redirectUrl = decoded.role === 'CUSTOMER' ? '/chat' : '/dashboard'
-          return NextResponse.redirect(new URL(redirectUrl, request.url))
+          if (decoded.role === 'CUSTOMER') {
+            return NextResponse.redirect(new URL('/chat', request.url))
+          } else if (decoded.role === 'ADMIN') {
+            return NextResponse.redirect(new URL('/dashboard/conversations', request.url))
+          } else {
+            return NextResponse.redirect(new URL('/dashboard', request.url))
+          }
         }
       } catch {
         // If token is invalid, clear it and continue to login
@@ -61,8 +68,9 @@ export function middleware(request: NextRequest) {
   try {
     const decoded = jwtDecode<JWTPayload>(authToken)
     
-    // Protect dashboard routes for support agents only
-    if ((pathname.startsWith('/dashboard') || pathname.startsWith('/issues')) && decoded.role !== 'SUPPORT_AGENT') {
+    // Protect dashboard routes for support agents and admins only
+    if ((pathname.startsWith('/dashboard') || pathname.startsWith('/issues')) && 
+        decoded.role !== 'SUPPORT_AGENT' && decoded.role !== 'ADMIN') {
       return NextResponse.redirect(new URL('/login', request.url))
     }
 

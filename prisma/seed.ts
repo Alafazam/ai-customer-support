@@ -19,6 +19,18 @@ async function main() {
     },
   });
 
+  // Create admin user
+  const adminPassword = await bcrypt.hash('admin123', 10);
+  await prisma.user.create({
+    data: {
+      email: 'admin@omnisahayak.com',
+      password: adminPassword,
+      firstName: 'Admin',
+      lastName: 'User',
+      role: 'ADMIN',
+    },
+  });
+
   // Create demo customer
   const customerPassword = await bcrypt.hash('customer123', 10);
   await prisma.user.create({
