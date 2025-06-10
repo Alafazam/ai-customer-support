@@ -10,16 +10,20 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      # Add production environment variables here
-      # - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_PROVIDER=mysql
+      # MySQL connection to your local machine
+      - DATABASE_URL=mysql://username:password@host.docker.internal:3306/ai_customer_support
+      # Add other production environment variables here
       # - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
       # - JWT_SECRET=${JWT_SECRET}
     # env_file:
     #   - .env.production  # Uncomment if using env file
     volumes:
-      # Mount the SQLite database if you want persistence
+      # No need to mount prisma for SQLite in production since we're using MySQL
       - ./prisma:/app/prisma
     restart: unless-stopped
+    # Use host networking to connect to local MySQL
+    network_mode: "host"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/health || exit 1"]
       interval: 30s

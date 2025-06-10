@@ -10,6 +10,8 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=development
+      - DATABASE_PROVIDER=sqlite
+      - DATABASE_URL=file:./dev.db
     env_file:
       # Load environment variables from local files
       - .env.local

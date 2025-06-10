@@ -1,0 +1,75 @@
+Issue Type	Error/Failure Mode	System/Process Component	Natural Query
+Order Packing Issues	System error	UI/UX	I'm getting an unexpected error message when I try to pack orders. The screen just says 'Internal Server Error' and nothing moves forward.
+Inventory Sync Issues	Data mismatch	Integration/API	The inventory count in WMS doesn't match what's in OMS. Why is there a difference in stock levels for the same SKU?
+Return Issues	Process stuck	Workflow/Process	I can't process a return order. The system is stuck on the 'Processing' step and won't let me complete the return.
+Data Correction	Data missing	Data/Configuration	A client's GSTIN is missing from the database, so I can't fetch the invoice. Can you help update the record?
+Internal Error Issues	System error	Integration/API	Multiple screens are showing 'Internal Server Error' and I can't access packing or inventory modules at all.
+Manifest Issues	UI not updating	UI/UX	The transporter option is not showing up in the manifest dropdown, even though it's configured. How do I proceed?
+Picklist Issues	Process stuck	Workflow/Process	Picklist is not getting released for pending orders, even though the orders are in fulfillable state. What should I do?
+Order Update Issues	Data mismatch	Data/Configuration	Order status is showing as 'Cancelled' in the database but still appears as active on the UI. Why is this happening?
+WMS/OMS-Order Sync Issues	API failure	Integration/API	Orders from Magento are not syncing to WMS. No logs are being generated for these orders. Can you check the integration?
+Posting Issues	Permission issue	Integration/API	I'm getting a 'User Unauthorized' error when trying to post order updates. How do I fix my permissions?
+Master Update Issues	Data missing	Data/Configuration	Images are not visible for SKUs in the WMS screen, even though the URLs are correct in the master data. What's wrong?
+Slowness Issues	Performance	UI/UX	The piece packing screen is extremely slow and it's taking too long to process each order. Is there a way to speed this up?
+Other Issues	Data mismatch	Data/Configuration	Duplicate partner names are showing up in OMS, but there should be a unique constraint. How do I resolve this?
+Order Packing Issues	Permission issue	UI/UX	I'm getting a 'User Unauthorized' error when trying to pack orders, even though I'm logged in as an operator.
+Inventory Sync Issues	Process stuck	Workflow/Process	Inventory sync jobs are enabled, but listings are stuck in 'Ready to Sync' status and not updating. What's the fix?
+Return Issues	Data mismatch	Data/Configuration	Return order is failing because the returnGateEntryItemId is incorrect in the request. How do I correct this?
+Data Correction	UI not updating	UI/UX	I updated the fulfillment location, but the change isn't reflecting on the WMS UI. Is there a delay or a bug?
+Internal Error Issues	API failure	Integration/API	I'm getting an 'Unknown Error' from the API when trying to generate a shipping label. Can you check the integration logs?
+Manifest Issues	Data mismatch	Data/Configuration	The manifest is showing the wrong fulfillment location code for Amazon_SC channel. How do I update it?
+Picklist Issues	Performance	Workflow/Process	It's taking too long to generate picklists for B2C orders. The process is much slower than usual today.
+Other Issues	Data mismatch	Hardware	The same Item ID and Bin ID are being generated and printed during inward process. How do I fix duplicate IDs?
+Order Packing Issues	API failure	Integration/API	I'm getting 'Error in closing shipment: No credentials found for clientChannelId' when trying to pack orders. What's wrong?
+Inventory Sync Issues	Data mismatch	Workflow/Process	EANs are not syncing to SKU master even though we received them from logic. Why aren't they appearing in OMS report?
+Return Issues	System error	Integration/API	Return orders with status 'returnShipmentProcessing' from OTO are not creating returns in OMNI. Can you check?
+Data Correction	Data missing	Data/Configuration	External credentials are not visible in CIMS for Magento channel in production, but they show in staging. What's missing?
+Internal Error Issues	Process stuck	Workflow/Process	CIMS postings queue has 113,836 items stuck and no outbound logs for 24 hours. Why are postings not processing?
+Manifest Issues	System error	Hardware	I can't download the packbox list from bulk packing screen. Getting 'Error while fetching document'. How do I fix this?
+Picklist Issues	Data mismatch	Data/Configuration	Items can't be sorted for 10-15 minutes after inwarding through cross dock screen. Why is there a delay?
+Order Update Issues	Process stuck	Workflow/Process	Order is stuck in created state and inventory is not getting allocated. What should I check?
+WMS/OMS-Order Sync Issues	Process stuck	Integration/API	Orders are not syncing to WMS at all. They're not appearing in the WMS order table. Can you investigate?
+Posting Issues	API failure	Integration/API	Return order postings have completely stopped for our client. Jobs are enabled but no calls are being made. Help?
+Master Update Issues	UI not updating	UI/UX	SKU images have correct URLs in master but show 403 error in WMS. Ground team can't see product images during packing.
+Slowness Issues	Process stuck	UI/UX	Unable to sort items after inwarding for 10-15 minutes. Operations team has to wait and it's affecting 150 shipments.
+Other Issues	Data mismatch	Data/Configuration	Need to delete incorrect aisle and location mappings so we can upload correct ones. Can you help remove old locations?
+Order Packing Issues	System error	Integration/API	Getting 'Another operation is in progress on shipmentId' error when trying to pack. Order is stuck and won't pack.
+Inventory Sync Issues	API failure	Integration/API	Inventory sync queue is choked across all channels. Queue depth is very high and sync has stopped working.
+Return Issues	Permission issue	UI/UX	Getting 'Unable to complete Return Order - incorrect returnGateEntryItemId' when processing returns. How do I fix this?
+Data Correction	System error	Data/Configuration	Need to update GSTin value in RMS but data is not available in database. Why is the data missing?
+Internal Error Issues	UI not updating	UI/UX	Getting HTTP Status 500 Internal Server Error when trying to open the client instances. Can't access any screens.
+Manifest Issues	Process stuck	Hardware	Ecom transporter is not showing in manifest dropdown even though it's configured. Can't create manifest.
+Picklist Issues	API failure	Workflow/Process	Picklist generation is enabled but no picklists are being released for B2C orders. Location shows fulfillable orders.
+Order Update Issues	Data mismatch	Integration/API	Order shows as 'NEW' in channel database and 'fulfillable' in OMS but ACK_ORDER call was never triggered. Why?
+WMS/OMS-Order Sync Issues	Data mismatch	Data/Configuration	Cross dock plan creation failed because of delay in order creation between Integrations and OMS modules.
+Posting Issues	Process stuck	Integration/API	Return order postings stopped working. Jobs enabled in both champ and CIMS but no calls being made to ERP.
+Master Update Issues	Data mismatch	Data/Configuration	Need to delete vendor SKU mapping for specific client locations. Old mappings are causing conflicts.
+Slowness Issues	Performance	Workflow/Process	Piece packing screen has severe slowness causing delays in packing process. Takes too long to load each order.
+Other Issues	System error	Data/Configuration	Unable to create client-channel pair in CIMS. Getting error during configuration setup.
+Order Packing Issues	Data mismatch	Integration/API	Bulk invoicing failing with 'Invoice template is not configured' error even though template exists in RMS.
+Inventory Sync Issues	Process stuck	Data/Configuration	Listings are in READY_TO_SYNC status but not syncing even though channel listings are force enabled.
+Return Issues	API failure	Workflow/Process	Returns not syncing when status is 'returnShipmentProcessing'. No return created in OMNI system.
+Data Correction	UI not updating	Data/Configuration	Updated perishable flag needs to be changed from true to false for specific EANs. GRN is pending.
+Internal Error Issues	Permission issue	Integration/API	All users getting 'USER UNAUTHORIZED' error when trying to pack orders across multiple clients.
+Manifest Issues	Performance	UI/UX	Manifest screen loading very slowly and dropdown options not populating properly. Affecting shipping workflow.
+Picklist Issues	Data mismatch	Data/Configuration	Picklist configuration enabled but system not generating picklists for orders in fulfillable state.
+Order Update Issues	API failure	Integration/API	Order stuck with failed status. VENDOR_DISPATCH_ORDER call failing and PO not getting created in system.
+WMS/OMS-Order Sync Issues	System error	Integration/API	Magento orders fetched but not syncing to system. No logs generated and orders not reflecting anywhere.
+Posting Issues	Data mismatch	Data/Configuration	GST details not getting pushed to CP despite integration pushing details to RMS. Missing seller_gstin and gst_info.
+Master Update Issues	Process stuck	Data/Configuration	Images configured with correct URLs but not loading in WMS due to access restrictions. Need URL format fix.
+Slowness Issues	System error	UI/UX	Piece packing screen showing internal error when scanning specific item codes. Can't complete packing workflow.
+Other Issues	API failure	Hardware	Shipping label generation failing with 'Courier selected is not serviceable on given pincode' error.
+Order Packing Issues	Process stuck	Hardware	Error while generating shipping label from RMS. Getting internal error and shipment can't be completed.
+Inventory Sync Issues	System error	Integration/API	Getting ADJUST_INVENTORY_ERROR after order cancellation. System sending wrong inventory count of 1 instead of 0.
+Return Issues	Data mismatch	Integration/API	RMS GST info not being passed to CP for specific orders despite other orders working fine.
+Data Correction	Process stuck	UI/UX	Gift note flag enabled and showing in WMS but can't print gift note. Getting 'no Gift Label found' error.
+Internal Error Issues	Data mismatch	Workflow/Process	Order splitting routing to wrong location (Omni-1) instead of configured priority location (Omni-6) with inventory.
+Manifest Issues	API failure	Data/Configuration	Error creating shipment from RMS when generating shipping label. Internal error blocking manifest creation.
+Picklist Issues	System error	Integration/API	Orders on hold even though showing 'fulfillable' in OMS. ACK_ORDER call not triggered for specific orders.
+Order Update Issues	Process stuck	Data/Configuration	Failed orders cancelled from CIMS but still showing on UI giving wrong pendency count to clients.
+WMS/OMS-Order Sync Issues	Performance	Integration/API	Delay in order creation on OMS/WMS modules causing cross dock plan failures. 200 shipments unable to inward.
+Posting Issues	System error	Workflow/Process	RETURN_ORDER_POSTING calls stopped for client. Jobs enabled but no postings being made to proxy/ERP.
+Master Update Issues	API failure	UI/UX	Item ID not able to map to pass bin during inward process. Getting 'Item not created through INWARD GRN process' error.
+Slowness Issues	Data mismatch	Workflow/Process	Order creation delay between integration push and OMS creation causing workflow bottlenecks.
+Other Issues	Permission issue	Data/Configuration	Order ID not appearing on shipping label. Need to include Order ID in CustomerReferences field of API payload.
+Order Packing Issues	Data mismatch	Hardware	AWB duplication issue - same AWB number already exists for different older order. Can't process new shipment.
